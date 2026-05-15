@@ -1,0 +1,2 @@
+virtual_environment_endpoint  = "https://<SEU_IP_DO_PROXMOX>:8006/"
+virtual_environment_api_token = "seu_usuario@pam!seu_token=00000000-0000-0000-0000-000000000000"
