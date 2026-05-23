@@ -52,7 +52,7 @@ data "talos_machine_configuration" "cp" {
         }
         network = {
           interfaces = [{
-            interface = "ens18"
+            interface = "eth0"
             dhcp      = false
             addresses = ["${local.cp_ip}${local.cidr_suffix}"]
             routes = [{
@@ -111,7 +111,7 @@ data "talos_machine_configuration" "worker" {
         }
         network = {
           interfaces = [{
-            interface = "ens18"
+            interface = "eth0"
             dhcp      = false
             addresses = ["${local.worker_ip}${local.cidr_suffix}"]
             routes = [{

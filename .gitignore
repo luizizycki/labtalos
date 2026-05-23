@@ -40,3 +40,7 @@ PLAN.md
 
 # Direnv (variáveis de ambiente do Proxmox)
 .envrc
+
+# Diagnostic support bundles
+support.zip
+support_*.zip
