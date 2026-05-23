@@ -1,4 +1,4 @@
-# ocilab
+# labtalos
 
 cluster kubernetes bare-metal rodando talos linux no proxmox, provisionado 100% com terraform.
 armazenamento de arquivos no backblaze b2 (s3) via nextcloud.

@@ -222,7 +222,7 @@ cluster:
     # Provides control plane specific configuration options.
     controlPlane:
         endpoint: https://${CONTROL_PLANE_IP}:6443 # Endpoint is the canonical controlplane endpoint, which can be an IP address or a DNS hostname.
-    clusterName: ocilab # Configures the cluster's name.
+    clusterName: labtalos # Configures the cluster's name.
     # Provides cluster specific network configuration options.
     network:
         dnsDomain: cluster.local # The domain used by Kubernetes DNS.

@@ -30,7 +30,7 @@ resource "talos_machine_secrets" "this" {}
 
 # === 2. TALOSCONFIG PRA CONECTAR NOS NÓS ===
 data "talos_client_configuration" "this" {
-  cluster_name         = "ocilab"
+  cluster_name         = "labtalos"
   client_configuration = talos_machine_secrets.this.client_configuration
   endpoints            = [local.cp_ip, local.worker_ip]
   nodes                = [local.cp_ip, local.worker_ip]
@@ -38,7 +38,7 @@ data "talos_client_configuration" "this" {
 
 # === 3. CONFIG DO CONTROL PLANE ===
 data "talos_machine_configuration" "cp" {
-  cluster_name     = "ocilab"
+  cluster_name     = "labtalos"
   machine_type     = "controlplane"
   cluster_endpoint = local.cluster_ep
   machine_secrets  = talos_machine_secrets.this.machine_secrets
@@ -116,7 +116,7 @@ data "talos_machine_configuration" "cp" {
 
 # === 4. CONFIG DO WORKER ===
 data "talos_machine_configuration" "worker" {
-  cluster_name     = "ocilab"
+  cluster_name     = "labtalos"
   machine_type     = "worker"
   cluster_endpoint = local.cluster_ep
   machine_secrets  = talos_machine_secrets.this.machine_secrets
