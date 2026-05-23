@@ -6,20 +6,23 @@ locals {
   cidr_suffix = "/24"
 }
 
-ephemeral "talos_machine_secrets" "this" {}
+# === 1. SEGREDOS DO CLUSTER (vai pro state) ===
+resource "talos_machine_secrets" "this" {}
 
-ephemeral "talos_client_configuration" "this" {
-  cluster_name    = "ocilab"
-  machine_secrets = ephemeral.talos_machine_secrets.this.machine_secrets
-  endpoints       = [local.cp_ip, local.worker_ip]
-  nodes           = [local.cp_ip, local.worker_ip]
+# === 2. TALOSCONFIG PRA CONECTAR NOS NÓS ===
+data "talos_client_configuration" "this" {
+  cluster_name         = "ocilab"
+  client_configuration = talos_machine_secrets.this.client_configuration
+  endpoints            = [local.cp_ip, local.worker_ip]
+  nodes                = [local.cp_ip, local.worker_ip]
 }
 
-ephemeral "talos_machine_configuration" "cp" {
+# === 3. CONFIG DO CONTROL PLANE ===
+data "talos_machine_configuration" "cp" {
   cluster_name     = "ocilab"
   machine_type     = "controlplane"
   cluster_endpoint = local.cluster_ep
-  machine_secrets  = ephemeral.talos_machine_secrets.this.machine_secrets
+  machine_secrets  = talos_machine_secrets.this.machine_secrets
   talos_version    = "v1.13"
   config_patches = [
     yamlencode({
@@ -91,11 +94,12 @@ ephemeral "talos_machine_configuration" "cp" {
   ]
 }
 
-ephemeral "talos_machine_configuration" "worker" {
+# === 4. CONFIG DO WORKER ===
+data "talos_machine_configuration" "worker" {
   cluster_name     = "ocilab"
   machine_type     = "worker"
   cluster_endpoint = local.cluster_ep
-  machine_secrets  = ephemeral.talos_machine_secrets.this.machine_secrets
+  machine_secrets  = talos_machine_secrets.this.machine_secrets
   talos_version    = "v1.13"
   config_patches = [
     yamlencode({
@@ -131,8 +135,45 @@ ephemeral "talos_machine_configuration" "worker" {
   ]
 }
 
-ephemeral "talos_cluster_kubeconfig" "this" {
-  cluster_name    = "ocilab"
-  machine_secrets = ephemeral.talos_machine_secrets.this.machine_secrets
-  endpoint        = local.cluster_ep
+# === 5. APLICA CONFIG NO CONTROL PLANE ===
+resource "talos_machine_configuration_apply" "cp" {
+  client_configuration        = talos_machine_secrets.this.client_configuration
+  machine_configuration_input = data.talos_machine_configuration.cp.machine_configuration
+  node                        = local.cp_ip
+  depends_on = [
+    resource.proxmox_virtual_environment_vm.talos_cluster
+  ]
+}
+
+# === 6. APLICA CONFIG NO WORKER ===
+resource "talos_machine_configuration_apply" "worker" {
+  client_configuration        = talos_machine_secrets.this.client_configuration
+  machine_configuration_input = data.talos_machine_configuration.worker.machine_configuration
+  node                        = local.worker_ip
+  depends_on = [
+    resource.proxmox_virtual_environment_vm.talos_cluster
+  ]
+}
+
+# === 7. BOOTSTRAP DO ETCD ===
+resource "talos_machine_bootstrap" "this" {
+  client_configuration = talos_machine_secrets.this.client_configuration
+  node                 = local.cp_ip
+  depends_on = [
+    resource.talos_machine_configuration_apply.cp
+  ]
+}
+
+# === 8. KUBECONFIG ===
+resource "talos_cluster_kubeconfig" "this" {
+  client_configuration = talos_machine_secrets.this.client_configuration
+  node                 = local.cp_ip
+  depends_on = [
+    resource.talos_machine_bootstrap.this
+  ]
+}
+
+resource "local_file" "kubeconfig" {
+  filename = "kubeconfig"
+  content  = talos_cluster_kubeconfig.this.kubeconfig_raw
 }
