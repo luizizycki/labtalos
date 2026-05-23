@@ -33,3 +33,10 @@ talosconfig
 kubeconfig
 *.kubeconfig
 PLAN.md
+
+# Chaves criptográficas
+*.pem
+*.key
+
+# Direnv (variáveis de ambiente do Proxmox)
+.envrc
