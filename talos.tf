@@ -1,8 +1,8 @@
 locals {
-  cp_ip      = local.nodes["talos-cp"].ip
-  worker_ip  = local.nodes["talos-worker"].ip
-  cluster_ep = "https://${local.nodes["talos-cp"].ip}:6443"
-  gateway    = local.nodes["talos-cp"].gateway
+  cp_ip       = local.nodes["talos-cp"].ip
+  worker_ip   = local.nodes["talos-worker"].ip
+  cluster_ep  = "https://${local.nodes["talos-cp"].ip}:6443"
+  gateway     = local.nodes["talos-cp"].gateway
   cidr_suffix = "/24"
 }
 
@@ -53,7 +53,7 @@ data "talos_machine_configuration" "cp" {
         network = {
           interfaces = [{
             interface = "ens18"
-            dhcp     = false
+            dhcp      = false
             addresses = ["${local.cp_ip}${local.cidr_suffix}"]
             routes = [{
               network = "0.0.0.0/0"
@@ -89,26 +89,7 @@ data "talos_machine_configuration" "cp" {
             urls = ["https://raw.githubusercontent.com/projectcalico/calico/v3.29.3/manifests/calico.yaml"]
           }
         }
-        apiServer = {
-          admissionControl = [{
-            name = "PodSecurity"
-            configuration = {
-              apiVersion = "pod-security.admission.config.k8s.io/v1alpha1"
-              kind       = "PodSecurityConfiguration"
-              defaults = {
-                enforce         = "baseline"
-                "enforce-version" = "latest"
-                audit           = "restricted"
-                "audit-version"   = "latest"
-                warn            = "restricted"
-                "warn-version"    = "latest"
-              }
-              exemptions = {
-                namespaces = ["kube-system"]
-              }
-            }
-          }]
-        }
+        apiServer = {}
       }
     })
   ]
@@ -131,7 +112,7 @@ data "talos_machine_configuration" "worker" {
         network = {
           interfaces = [{
             interface = "ens18"
-            dhcp     = false
+            dhcp      = false
             addresses = ["${local.worker_ip}${local.cidr_suffix}"]
             routes = [{
               network = "0.0.0.0/0"
@@ -197,4 +178,9 @@ resource "talos_cluster_kubeconfig" "this" {
 resource "local_file" "kubeconfig" {
   filename = "kubeconfig"
   content  = talos_cluster_kubeconfig.this.kubeconfig_raw
+}
+
+resource "local_file" "talosconfig" {
+  filename = "talosconfig"
+  content  = data.talos_client_configuration.this.talos_config
 }
