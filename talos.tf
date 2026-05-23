@@ -1,9 +1,28 @@
 locals {
-  cp_ip       = "192.168.1.50"
-  worker_ip   = "192.168.1.51"
-  cluster_ep  = "https://${local.cp_ip}:6443"
-  gateway     = "192.168.1.1"
+  cp_ip      = local.nodes["talos-cp"].ip
+  worker_ip  = local.nodes["talos-worker"].ip
+  cluster_ep = "https://${local.nodes["talos-cp"].ip}:6443"
+  gateway    = local.nodes["talos-cp"].gateway
   cidr_suffix = "/24"
+}
+
+# === 0. IMAGE FACTORY: GERA ISO COM QEMU-GUEST-AGENT ===
+resource "talos_image_factory_schematic" "this" {
+  schematic = yamlencode({
+    customization = {
+      systemExtensions = {
+        officialExtensions = [
+          "siderolabs/qemu-guest-agent",
+        ]
+      }
+    }
+  })
+}
+
+data "talos_image_factory_urls" "this" {
+  talos_version = local.talos_version
+  schematic_id  = talos_image_factory_schematic.this.id
+  platform      = "nocloud"
 }
 
 # === 1. SEGREDOS DO CLUSTER (vai pro state) ===
@@ -23,12 +42,13 @@ data "talos_machine_configuration" "cp" {
   machine_type     = "controlplane"
   cluster_endpoint = local.cluster_ep
   machine_secrets  = talos_machine_secrets.this.machine_secrets
-  talos_version    = "v1.13"
+  talos_version    = local.talos_version
   config_patches = [
     yamlencode({
       machine = {
         install = {
-          disk = "/dev/sda"
+          disk  = "/dev/sda"
+          image = data.talos_image_factory_urls.this.urls["installer"]
         }
         network = {
           interfaces = [{
@@ -100,12 +120,13 @@ data "talos_machine_configuration" "worker" {
   machine_type     = "worker"
   cluster_endpoint = local.cluster_ep
   machine_secrets  = talos_machine_secrets.this.machine_secrets
-  talos_version    = "v1.13"
+  talos_version    = local.talos_version
   config_patches = [
     yamlencode({
       machine = {
         install = {
-          disk = "/dev/sda"
+          disk  = "/dev/sda"
+          image = data.talos_image_factory_urls.this.urls["installer"]
         }
         network = {
           interfaces = [{

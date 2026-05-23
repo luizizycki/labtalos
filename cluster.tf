@@ -1,43 +1,45 @@
 locals {
-  # Variável para atualizar o Talos no futuro trocando num lugar só
   talos_version = "v1.13.2"
 
-  # Nosso "Banco de Dados" de máquinas
   nodes = {
     "talos-cp" = {
-      vmid = 800
-      cpu  = 2
-      ram  = 5120
+      vmid    = 800
+      cpu     = 2
+      ram     = 5120
+      ip      = "192.168.1.50"
+      gateway = "192.168.1.1"
+      cidr    = "/24"
     }
     "talos-worker" = {
-      vmid = 801
-      cpu  = 2
-      ram  = 5120
+      vmid    = 801
+      cpu     = 2
+      ram     = 5120
+      ip      = "192.168.1.51"
+      gateway = "192.168.1.1"
+      cidr    = "/24"
     }
   }
 }
 
-# 1. Faz o download automático da ISO direto do GitHub pro seu Proxmox
 resource "proxmox_download_file" "talos_iso" {
   content_type = "iso"
   datastore_id = "local"
-  node_name    = "proxmox" # Mude se o nome do seu node no Proxmox não for 'pve'
-  url          = "https://github.com/siderolabs/talos/releases/download/${local.talos_version}/metal-amd64.iso"
-  file_name    = "talos-${local.talos_version}-amd64.iso"
+  node_name    = "proxmox"
+  url          = data.talos_image_factory_urls.this.urls["iso"]
+  file_name    = "talos-nocloud-${local.talos_version}-${talos_image_factory_schematic.this.id}.iso"
 }
 
-# 2. Cria as VMs lendo dinamicamente a tabela "nodes" lá do topo
 resource "proxmox_virtual_environment_vm" "talos_cluster" {
   for_each = local.nodes
 
-  name      = each.key        # Nome = "talos-cp" e depois "talos-worker"
-  node_name = "proxmox"       # Nome do nó no Proxmox
-  vm_id     = each.value.vmid # Puxa o 800 e depois o 801
-  started   = true            # Já liga a máquina assim que criar
+  name      = each.key
+  node_name = "proxmox"
+  vm_id     = each.value.vmid
+  started   = true
 
   cpu {
     cores = each.value.cpu
-    type  = "x86-64-v2-AES" # Otimizado para K8s
+    type  = "x86-64-v2-AES"
   }
 
   memory {
@@ -49,7 +51,7 @@ resource "proxmox_virtual_environment_vm" "talos_cluster" {
     interface    = "scsi0"
     size         = 50
     file_format  = "raw"
-    discard      = "on" # Essencial para SSDs não morrerem cedo (TRIM)
+    discard      = "on"
   }
 
   cdrom {
@@ -59,17 +61,21 @@ resource "proxmox_virtual_environment_vm" "talos_cluster" {
   }
 
   network_device {
-    bridge = "vmbr0" # A bridge que conecta no seu roteador físico
+    bridge = "vmbr0"
   }
 
-  # Tenta dar boot no disco. Se falhar (disco zerado), usa o CD do Talos
   boot_order = ["scsi0", "ide3"]
 
-  operating_system {
-    type = "l26" # Kernel Linux genérico
+  agent {
+    enabled = true
   }
 
-  agent {
-    enabled = false # evitar deadlock
+  initialization {
+    ip_config {
+      ipv4 {
+        address = "${each.value.ip}${each.value.cidr}"
+        gateway = each.value.gateway
+      }
+    }
   }
 }
