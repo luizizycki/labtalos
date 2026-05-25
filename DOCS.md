@@ -6,7 +6,7 @@ Essa documentação contém as credenciais e endereçamentos da infraestrutura d
 
 ### Proxmox VE
 - **Painel Web:** `https://192.168.1.100:8006/`
-- **API Token (Terraform):** `terraform@pve!provider=d7521e4c-5433-4e58-a578-04f5a0e744fc`
+- **API Token (Terraform):** `terraform@pve!provider=<seu-token-aqui>`
 - **Gateway da Rede:** `192.168.1.1`
 
 ### Cluster Talos (v1.13.2)
