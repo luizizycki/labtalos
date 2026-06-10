@@ -27,6 +27,8 @@ resource "proxmox_download_file" "talos_iso" {
   node_name    = "proxmox"
   url          = data.talos_image_factory_urls.this.urls["iso"]
   file_name    = "talos-nocloud-${local.talos_version}-${talos_image_factory_schematic.this.id}.iso"
+  overwrite    = true
+  overwrite_unmanaged = true
 }
 
 resource "proxmox_virtual_environment_vm" "talos_cluster" {
@@ -55,7 +57,6 @@ resource "proxmox_virtual_environment_vm" "talos_cluster" {
   }
 
   cdrom {
-    enabled   = true
     file_id   = proxmox_download_file.talos_iso.id
     interface = "ide3"
   }

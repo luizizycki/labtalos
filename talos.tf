@@ -79,16 +79,19 @@ data "talos_machine_configuration" "cp" {
       }
       cluster = {
         proxy = {
-          extraArgs = {
-            "ipvs-strict-arp" = "true"
-          }
+          disabled = true
         }
         network = {
           cni = {
-            name = "custom"
-            urls = ["https://raw.githubusercontent.com/projectcalico/calico/v3.29.3/manifests/calico.yaml"]
+            name = "none"
           }
         }
+        inlineManifests = [
+          {
+            name     = "cilium"
+            contents = file("${path.module}/cilium.yaml")
+          }
+        ]
         apiServer = {}
       }
     })
