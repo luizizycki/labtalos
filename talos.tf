@@ -89,7 +89,7 @@ data "talos_machine_configuration" "cp" {
         inlineManifests = [
           {
             name     = "cilium"
-            contents = file("${path.module}/cilium.yaml")
+            contents = file("${path.module}/generated/cilium.yaml")
           }
         ]
         apiServer = {}

@@ -27,16 +27,12 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# Talos configs (Não queremos vazar certificados e kuneconfigs)
-controlplane.yaml
-worker.yaml
-talosconfig
+# Generated files
+/cilium.yaml
+generated/
 kubeconfig
+talosconfig
 *.kubeconfig
-PLAN.md
-cilium.yaml
-kubeconfig
-talosconfig
 
 # Chaves criptográficas
 *.pem
@@ -48,3 +44,6 @@ talosconfig
 # Diagnostic support bundles
 support.zip
 support_*.zip
+
+# Planos de trabalho
+PLANO.md

@@ -31,3 +31,8 @@ l2announcements:
   enabled: true
 externalIPs:
   enabled: true
+
+gatewayAPI:
+  enabled: true
+  gatewayClass:
+    create: "false"

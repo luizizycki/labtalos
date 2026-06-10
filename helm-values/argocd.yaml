@@ -1,0 +1,90 @@
+# ArgoCD v3.4.3 — chart: argo-cd 9.5.17
+# Valores para instalação via Helm. Gateway API faz o expose externo.
+
+fullnameOverride: argocd
+
+# --- Configs do ArgoCD ---
+configs:
+  params:
+    server.insecure: true
+  cm:
+    url: https://argocd.izycki.com.br
+    # Dex config para SSO GitHub será adicionado na Fase 7
+    # dex.config: |
+    #   connectors:
+    #     - type: github
+    #       id: github
+    #       name: GitHub
+    #       config:
+    #         clientID: SEU_CLIENT_ID
+    #         clientSecret: SEU_CLIENT_SECRET
+    #         orgs:
+    #           - name: luizizycki
+
+# --- Server ---
+server:
+  ingress:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# --- Repo Server ---
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  timeout: 120
+
+# --- Application Controller ---
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+# --- Redis (single para homelab) ---
+redis:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# --- Dex (necessário para SSO, mesmo que não configurado ainda) ---
+dex:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# --- Notifications ---
+notifications:
+  enabled: false
+
+# --- ApplicationSet ---
+applicationSet:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
