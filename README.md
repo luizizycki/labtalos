@@ -15,10 +15,7 @@ kubectl apply --server-side -f crds/gateway-api/
 
 # 3 — Instalar ArgoCD
 helm repo add argo https://argoproj.github.io/argo-helm
-helm upgrade --install argocd argo/argo-cd \
-  --namespace argocd --create-namespace \
-  --values helm-values/argocd.yaml
-kubectl wait -n argocd deploy/argocd-server --for=condition=Available --timeout=120s
+helm upgrade --install argocd argo/argo-cd --namespace argocd --create-namespace --values helm-values/argocd.yaml
 
 # 4 — ArgoCD assume o controle
 kubectl apply -f apps/bootstrap-app.yaml
