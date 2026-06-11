@@ -12,7 +12,7 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: wildcard-izycki
+          - name: argocd-tls
             namespace: cilium-secrets
       allowedRoutes:
         namespaces:
