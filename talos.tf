@@ -187,3 +187,8 @@ resource "local_file" "talosconfig" {
   filename = "talosconfig"
   content  = data.talos_client_configuration.this.talos_config
 }
+
+output "kubeconfig_raw" {
+  value     = talos_cluster_kubeconfig.this.kubeconfig_raw
+  sensitive = true
+}
