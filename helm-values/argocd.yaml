@@ -9,17 +9,16 @@ configs:
     server.insecure: true
   cm:
     url: https://argocd.izycki.com.br
-    # Dex config para SSO GitHub será adicionado na Fase 7
-    # dex.config: |
-    #   connectors:
-    #     - type: github
-    #       id: github
-    #       name: GitHub
-    #       config:
-    #         clientID: SEU_CLIENT_ID
-    #         clientSecret: SEU_CLIENT_SECRET
-    #         orgs:
-    #           - name: luizizycki
+    dex.config: |
+      connectors:
+        - type: github
+          id: github
+          name: GitHub
+          config:
+            clientID: Ov23liBwKMn1JS9baAQZ
+            clientSecret: PLACEHOLDER
+  rbac:
+    policy.default: role:admin
 
 # --- Server ---
 server:

@@ -47,3 +47,6 @@ support_*.zip
 
 # Planos de trabalho
 PLANO.md
+
+# Helm values locais (contêm segredos)
+helm-values/*.local.yaml
