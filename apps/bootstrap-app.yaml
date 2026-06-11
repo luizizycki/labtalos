@@ -11,6 +11,7 @@ spec:
     path: apps
     directory:
       recurse: true
+      exclude: '{**/values.yaml,**/cert-manager/resources/**}'
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
