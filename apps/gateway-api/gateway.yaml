@@ -13,6 +13,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - name: wildcard-izycki
+            namespace: cilium-secrets
       allowedRoutes:
         namespaces:
           from: All
