@@ -11,7 +11,7 @@ spec:
       targetRevision: v1.18.2
       helm:
         valueFiles:
-          - $values/apps/cert-manager/values.yaml
+          - $values/helm-values/cert-manager.yaml
     - repoURL: https://github.com/luizizycki/labtalos.git
       targetRevision: main
       ref: values
