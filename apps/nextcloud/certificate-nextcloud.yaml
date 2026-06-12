@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nextcloud-tls
+  namespace: default
+spec:
+  secretName: labtalos-tls
+  dnsNames:
+    - nextcloud.izycki.com.br
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

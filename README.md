@@ -1,91 +1,68 @@
-# Lab Talos
+# Ocilab
 
-Cluster Kubernetes Talos + GitOps via ArgoCD.
+Um cluster Kubernetes rodando Talos Linux no Proxmox, tudo provisionado com Terraform e gerenciado via GitOps com ArgoCD.
 
-Este repositório implementa um deploy **zero-touch** completo: do provisionamento de VMs no Proxmox à configuração e sincronização de aplicativos de infraestrutura via ArgoCD.
+## Como funciona
 
-## Pré-requisitos
+| Peça | O quê |
+|---|---|
+| **Servidor** | Proxmox num i5-4570T, 16GB RAM, SSD 240GB — o cérebro da operação |
+| **Armazenamento** | Backblaze B2 (S3) via Nextcloud |
+| **Cluster** | Talos Linux + Kubernetes, 2 nós (control plane + worker) |
+| **Infra como código** | Terraform com provider Proxmox — `terraform apply` e pronto |
+| **GitOps** | ArgoCD em auto-sync: empurrou no git, foi pro cluster |
+| **Rede externa** | VPS na Oracle Cloud (OCI) fazendo de gateway. WireGuard do homelab até a nuvem, HAProxy repassando TCP pro K8s. tudo pra furar o CGNAT da operadora |
 
-Antes de iniciar, garanta que você possui as seguintes ferramentas instaladas localmente (onde o Terraform será executado):
+## Bootstrap
 
-1. **Dependências Obrigatórias**:
-   * `terraform` (v1.5.0+)
-   * `kubectl` (v1.28+)
-   * `helm` (v3.0+)
-2. **Dependência Opcional**:
-   * `talosctl` (para interagir diretamente com o sistema operacional Talos)
-
-Você pode verificar as dependências rodando o script:
-```bash
-./scripts/check-deps.sh
-```
-
-## Configuração Inicial
-
-### 1. Variáveis do Terraform
-Copie o arquivo de exemplo de variáveis e configure com suas credenciais do Proxmox:
-```bash
-cp terraform.tfvars.example terraform.tfvars
-# Edite terraform.tfvars com suas configurações
-```
-
-### 2. Configurações Locais do ArgoCD (SSO)
-O ArgoCD utiliza autenticação via GitHub (Dex). Por motivos de segurança, a chave privada (`clientSecret`) deve ser mantida localmente e não versionada no Git.
-
-Copie o arquivo de exemplo de values locais e insira seu `clientSecret` real:
-```bash
-cp helm-values/argocd.local.yaml.example helm-values/argocd.local.yaml
-# Insira seu clientSecret real no arquivo helm-values/argocd.local.yaml
-```
-
-*Nota: O arquivo `argocd.local.yaml` é ignorado pelo Git (configurado no `.gitignore`) para evitar vazamento acidental de credenciais.*
-
-## Deploy
-
-Com as dependências instaladas e as variáveis configuradas, o deploy é totalmente automatizado:
+Só isso:
 
 ```bash
-terraform init
-terraform apply
+cp terraform.tfvars.example terraform.tfvars          # bota os secrets
+cp helm-values/argocd.local.yaml.example \
+   helm-values/argocd.local.yaml                      # configura SSO do GitHub
+terraform apply                                        # e vai tomar um café
 ```
 
-O Terraform realizará os seguintes passos automaticamente:
-1. Criará as VMs no Proxmox e instalará o Talos OS.
-2. Aguardará o cluster ficar responsivo.
-3. Aplicará as CRDs oficiais do **Gateway API**.
-4. Reiniciará o **Cilium Operator** para registrar automaticamente o controlador de Gateway API.
-5. Instalará o **ArgoCD** utilizando as configurações padrão (`argocd.yaml`) mescladas com seus segredos locais (`argocd.local.yaml`).
-6. Aplicará a Application raiz (`bootstrap-app.yaml`), que instruirá o ArgoCD a assumir o controle do cluster e sincronizar todos os workloads.
+Em uns 12 minutos o cluster sobe com certificado Let's Encrypt válido. Zero intervenção manual.
 
 ## GitOps Flow
 
-Uma vez finalizado o apply do Terraform, toda mudança na infraestrutura ou nos workloads deve ser feita declarativamente via Git.
+```
+git add . && git commit -m "bati o layout" && git push
+```
 
-Para atualizar o cluster:
-1. Altere os manifestos correspondentes na pasta `apps/`.
-2. Commit e Push para a branch `main`:
-   ```bash
-   git add .
-   git commit -m "feat: atualiza config"
-   git push origin main
-   ```
-3. O ArgoCD detectará o drift no Git e sincronizará automaticamente.
+ArgoCD sincroniza sozinho. Se alguém mexer no cluster na mão, ele volta ao que tá no git na próxima reconciliação.
 
-## Estrutura do Repositório
+## Estrutura
 
-* `apps/` - Definições de Applications do ArgoCD e seus recursos
-* `crds/` - Custom Resource Definitions aplicadas no bootstrap
-* `generated/` - Manifestos gerados automaticamente (como `cilium.yaml`)
-* `helm-values/` - Arquivos de configuração dos charts Helm (incluindo `argocd.local.yaml` para segredos)
-* `scripts/` - Scripts de validação e geração de código
-* `*.tf` - Código Terraform para infraestrutura e bootstrap
+```
+.
+├── apps/            # app-of-apps + aplicações (cert-manager, gateway-api, etc.)
+├── helm-values/     # values dos Helm charts
+├── generated/       # manifests gerados (Cilium)
+├── cluster.tf       # config das VMs
+├── talos.tf         # bootstrap + inline manifests
+├── provider.tf      # provider Proxmox
+└── variables.tf     # variáveis do Terraform
+```
 
-## Versões dos Componentes
+## Versões
 
 | Componente | Versão |
 |---|---|
 | Talos | v1.13.2 |
-| Kubernetes | v1.34.1 |
+| Kubernetes | v1.36.0 |
 | Cilium | v1.17.2 |
-| ArgoCD | v3.4.3 (chart: argo-cd 9.5.17) |
-| Gateway API | v1.2.x |
+| ArgoCD | v3.4.3 |
+| Gateway API | v1.2.1 |
+| cert-manager | v1.18.2 |
+
+## O que já roda
+
+- [x] Cluster Talos (control plane + worker)
+- [x] Roteamento externo (WireGuard + HAProxy via OCI)
+- [x] TLS automático com Let's Encrypt
+- [x] Gateway API + Cilium como ingress controller
+- [x] Nextcloud + Backblaze B2
+- [ ] Monitoramento (Grafana + Prometheus) — em breve
