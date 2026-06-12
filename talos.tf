@@ -218,10 +218,19 @@ resource "null_resource" "bootstrap" {
         sleep 10
       done
 
+      # Aplica as CRDs do Gateway API antes do Cilium/ArgoCD para evitar race conditions
+      echo "Aplicando CRDs do Gateway API (Server-Side Apply)..."
+      kubectl --kubeconfig "$K" apply --server-side -f "$CWD/crds/gateway-api/"
+
       # Aguarda Cilium ficar pronto (CNI)
       echo "Aguardando Cilium..."
       kubectl --kubeconfig "$K" wait --for=condition=Available -n kube-system deployment/cilium-operator --timeout=180s
       kubectl --kubeconfig "$K" wait --for=condition=Ready -n kube-system pod -l k8s-app=cilium --timeout=180s
+
+      # Reinicia o Cilium Operator para registrar o Gateway API controller caso ele tenha subido antes do CRD
+      echo "Reiniciando Cilium Operator para registrar Gateway API..."
+      kubectl --kubeconfig "$K" rollout restart deployment/cilium-operator -n kube-system
+      kubectl --kubeconfig "$K" rollout status deployment/cilium-operator -n kube-system --timeout=180s
 
       # Adiciona repo Helm do ArgoCD
       helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true

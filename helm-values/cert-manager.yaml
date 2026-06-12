@@ -933,7 +933,7 @@ webhook:
   # Since the default port for the webhook conflicts with kubelet on the host
   # network, `webhook.securePort` should be changed to an available port if
   # running in hostNetwork mode.
-  hostNetwork: true
+  hostNetwork: false
 
   # Specifies how the service should be handled. Useful if you want to expose the
   # webhook outside of the cluster. In some cases, the control plane cannot

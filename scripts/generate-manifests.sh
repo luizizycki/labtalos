@@ -4,6 +4,10 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CILIUM_VERSION="${CILIUM_VERSION:-1.17.2}"
 
+echo "==> Garantindo repositório Helm do Cilium..."
+helm repo add cilium https://helm.cilium.io/ 2>/dev/null || true
+helm repo update cilium 2>/dev/null || true
+
 echo "==> Gerando generated/cilium.yaml (Cilium $CILIUM_VERSION)..."
 helm template cilium cilium/cilium \
   --version "$CILIUM_VERSION" \
