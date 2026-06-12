@@ -18,8 +18,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: argocd-tls
-            namespace: cilium-secrets
+          - name: labtalos-tls
+            namespace: default
       allowedRoutes:
         namespaces:
           from: All

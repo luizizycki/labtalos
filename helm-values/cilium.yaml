@@ -36,3 +36,9 @@ gatewayAPI:
   enabled: true
   gatewayClass:
     create: "false"
+
+# Evita que o helm template gere CA private key no arquivo estático
+hubble:
+  tls:
+    auto:
+      method: cronJob

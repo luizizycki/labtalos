@@ -2,9 +2,9 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: argocd-tls
-  namespace: cilium-secrets
+  namespace: default
 spec:
-  secretName: argocd-tls
+  secretName: labtalos-tls
   dnsNames:
     - argocd.izycki.com.br
   issuerRef:

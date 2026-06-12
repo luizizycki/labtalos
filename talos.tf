@@ -188,6 +188,76 @@ resource "local_file" "talosconfig" {
   content  = data.talos_client_configuration.this.talos_config
 }
 
+# === 9. BOOTSTRAP DO ARGOCD + APPLICATIONS ===
+resource "null_resource" "bootstrap" {
+  depends_on = [local_file.kubeconfig]
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    environment = {
+      KUBECONFIG = "${path.module}/kubeconfig"
+      CWD        = path.module
+    }
+    command = <<-EOT
+      set -eux
+
+      K=$(echo "$KUBECONFIG" | tr -d '\r')
+      CWD=$(echo "$CWD" | tr -d '\r')
+
+      # Aguarda o cluster ficar responsivo
+      echo "Aguardando cluster..."
+      for i in $(seq 1 30); do
+        if kubectl --kubeconfig "$K" get nodes &>/dev/null; then
+          echo "Cluster pronto"
+          break
+        fi
+        if [ "$i" -eq 30 ]; then
+          echo "Cluster nao respondeu apos 5min"
+          exit 1
+        fi
+        sleep 10
+      done
+
+      # Aguarda Cilium ficar pronto (CNI)
+      echo "Aguardando Cilium..."
+      kubectl --kubeconfig "$K" wait --for=condition=Available -n kube-system deployment/cilium-operator --timeout=180s
+      kubectl --kubeconfig "$K" wait --for=condition=Ready -n kube-system pod -l k8s-app=cilium --timeout=180s
+
+      # Adiciona repo Helm do ArgoCD
+      helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
+      helm repo update argo 2>/dev/null || true
+
+      # Monta args de values (argocd.local.yaml é opcional)
+      VALUES_HELM="$CWD/helm-values/argocd.yaml"
+      VALUES_LOCAL="$CWD/helm-values/argocd.local.yaml"
+      VALUES_ARGS="--values $VALUES_HELM"
+      if [ -f "$VALUES_LOCAL" ]; then
+        VALUES_ARGS="$VALUES_ARGS --values $VALUES_LOCAL"
+      fi
+
+      # Instala ArgoCD via Helm
+      echo "Instalando ArgoCD..."
+      helm upgrade --install argocd argo/argo-cd \
+        --kubeconfig "$K" \
+        --namespace argocd --create-namespace \
+        --version 9.5.17 \
+        $VALUES_ARGS \
+        --wait \
+        --timeout 5m
+
+      # Aguarda ArgoCD server ficar pronto
+      echo "Aguardando ArgoCD server..."
+      kubectl --kubeconfig "$K" wait --for=condition=Available -n argocd deployment/argocd-server --timeout=180s
+
+      # Aplica bootstrap Application
+      echo "Aplicando bootstrap Application..."
+      kubectl --kubeconfig "$K" apply -f "$CWD/apps/bootstrap-app.yaml"
+
+      echo "Bootstrap concluido! ArgoCD esta sincronizando as Applications do Git."
+    EOT
+  }
+}
+
 output "kubeconfig_raw" {
   value     = talos_cluster_kubeconfig.this.kubeconfig_raw
   sensitive = true
