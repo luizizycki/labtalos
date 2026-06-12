@@ -226,7 +226,7 @@ resource "null_resource" "bootstrap" {
 
       # Aplica as CRDs do Gateway API (via URL oficial) antes do ArgoCD
       echo "Aplicando CRDs do Gateway API..."
-      kubectl --kubeconfig "$K" apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+      kubectl --kubeconfig "$K" apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
 
       # Aguarda Cilium ficar pronto (CNI)
       echo "Aguardando criacao dos recursos do Cilium..."
