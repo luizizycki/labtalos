@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: cert-manager
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   sources:
@@ -15,9 +17,6 @@ spec:
     - repoURL: https://github.com/luizizycki/labtalos.git
       targetRevision: main
       ref: values
-    - repoURL: https://github.com/luizizycki/labtalos.git
-      targetRevision: main
-      path: apps/cert-manager/resources
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
@@ -27,4 +26,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - SkipDryRunOnMissingResource=true

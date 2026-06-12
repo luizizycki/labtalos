@@ -28,8 +28,8 @@ override.tf.json
 terraform.rc
 
 # Generated files
-/cilium.yaml
-generated/
+generated/*
+!generated/cilium.yaml
 kubeconfig
 talosconfig
 *.kubeconfig
@@ -50,3 +50,6 @@ PLANO.md
 
 # Helm values locais (contêm segredos)
 helm-values/*.local.yaml
+
+# Documentação gerada localmente
+DOCS/

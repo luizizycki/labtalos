@@ -192,6 +192,12 @@ resource "local_file" "talosconfig" {
 resource "null_resource" "bootstrap" {
   depends_on = [local_file.kubeconfig]
 
+  triggers = {
+    talos_tf_md5       = filemd5("${path.module}/talos.tf")
+    argocd_values_md5  = filemd5("${path.module}/helm-values/argocd.yaml")
+    bootstrap_app_md5  = filemd5("${path.module}/apps/bootstrap-app.yaml")
+  }
+
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     environment = {
@@ -223,7 +229,21 @@ resource "null_resource" "bootstrap" {
       kubectl --kubeconfig "$K" apply --server-side -f "$CWD/crds/gateway-api/"
 
       # Aguarda Cilium ficar pronto (CNI)
-      echo "Aguardando Cilium..."
+      echo "Aguardando criacao dos recursos do Cilium..."
+      for i in $(seq 1 30); do
+        if kubectl --kubeconfig "$K" get deployment -n kube-system cilium-operator &>/dev/null && \
+           [ "$(kubectl --kubeconfig "$K" get pods -n kube-system -l k8s-app=cilium -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | wc -w)" -gt 0 ]; then
+          echo "Recursos do Cilium encontrados."
+          break
+        fi
+        if [ "$i" -eq 30 ]; then
+          echo "Recursos do Cilium nao foram criados apos 5min"
+          exit 1
+        fi
+        sleep 10
+      done
+
+      echo "Aguardando Cilium ficar pronto..."
       kubectl --kubeconfig "$K" wait --for=condition=Available -n kube-system deployment/cilium-operator --timeout=180s
       kubectl --kubeconfig "$K" wait --for=condition=Ready -n kube-system pod -l k8s-app=cilium --timeout=180s
 
@@ -236,13 +256,20 @@ resource "null_resource" "bootstrap" {
       helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
       helm repo update argo 2>/dev/null || true
 
-      # Monta args de values (argocd.local.yaml é opcional)
+      # Monta args de values (argocd.local.yaml é obrigatório para SSO)
       VALUES_HELM="$CWD/helm-values/argocd.yaml"
       VALUES_LOCAL="$CWD/helm-values/argocd.local.yaml"
-      VALUES_ARGS="--values $VALUES_HELM"
-      if [ -f "$VALUES_LOCAL" ]; then
-        VALUES_ARGS="$VALUES_ARGS --values $VALUES_LOCAL"
+      
+      if [ ! -f "$VALUES_LOCAL" ]; then
+        echo "=========================================================="
+        echo "ERRO: O arquivo $VALUES_LOCAL não existe!"
+        echo "Crie-o a partir de argocd.local.yaml.example com seu secret"
+        echo "real antes de iniciar o deploy."
+        echo "=========================================================="
+        exit 1
       fi
+      
+      VALUES_ARGS="--values $VALUES_HELM --values $VALUES_LOCAL"
 
       # Instala ArgoCD via Helm
       echo "Instalando ArgoCD..."
