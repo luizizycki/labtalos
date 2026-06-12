@@ -11,66 +11,6 @@ spec:
     repoURL: https://nextcloud.github.io/helm
     chart: nextcloud
     targetRevision: 6.x
-    helm:
-      values: |
-        fullnameOverride: nextcloud
-        nextcloud:
-          host: nextcloud.izycki.com.br
-          existingSecret:
-            enabled: true
-            secretName: nextcloud-admin
-            usernameKey: username
-            passwordKey: password
-          trustedDomains:
-            - nextcloud.izycki.com.br
-          objectstore:
-            s3:
-              enabled: true
-              bucket: labtalos
-              host: s3.us-east-005.backblazeb2.com
-              region: us-east-005
-              ssl: true
-              port: "443"
-              existingSecret: nextcloud-b2
-              secretKeys:
-                accessKey: b2_key
-                secretKey: b2_secret
-          persistence:
-            enabled: true
-            size: 5Gi
-        phpClientHttpsFix:
-          enabled: true
-          protocol: https
-        internalDatabase:
-          enabled: true
-          type: mariadb
-          mariadb:
-            architecture: standalone
-            primary:
-              persistence:
-                enabled: true
-                size: 5Gi
-              resources:
-                requests:
-                  memory: 256Mi
-                  cpu: 100m
-        redis:
-          enabled: true
-          master:
-            persistence:
-              enabled: true
-              size: 1Gi
-            resources:
-              requests:
-                memory: 64Mi
-                cpu: 50m
-        httpRoute:
-          enabled: true
-          hostnames:
-            - nextcloud.izycki.com.br
-          parentRefs:
-            - name: labtalos-gateway
-              namespace: default
   destination:
     server: https://kubernetes.default.svc
     namespace: nextcloud
