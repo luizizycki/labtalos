@@ -6,6 +6,7 @@ locals {
       vmid    = 800
       cpu     = 2
       ram     = 5120
+      disk    = 50
       ip      = "192.168.1.50"
       gateway = "192.168.1.1"
       cidr    = "/24"
@@ -14,6 +15,7 @@ locals {
       vmid    = 801
       cpu     = 2
       ram     = 5120
+      disk    = 100
       ip      = "192.168.1.51"
       gateway = "192.168.1.1"
       cidr    = "/24"
@@ -51,7 +53,7 @@ resource "proxmox_virtual_environment_vm" "talos_cluster" {
   disk {
     datastore_id = "local-lvm"
     interface    = "scsi0"
-    size         = 50
+    size         = each.value.disk
     file_format  = "raw"
     discard      = "on"
   }
