@@ -53,3 +53,6 @@ helm-values/*.local.yaml
 
 # Documentação gerada localmente
 DOCS/
+
+# Configs OCI (contêm chaves privadas WG)
+oci/
