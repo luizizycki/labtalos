@@ -7,10 +7,16 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
-  source:
-    repoURL: https://nextcloud.github.io/helm
-    chart: nextcloud
-    targetRevision: 6.x
+  sources:
+    - repoURL: https://nextcloud.github.io/helm
+      chart: nextcloud
+      targetRevision: 9.x 
+      helm:
+        valueFiles:
+          - $values/helm-values/nextcloud.yaml
+    - repoURL: https://github.com/luizizycki/labtalos.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: nextcloud

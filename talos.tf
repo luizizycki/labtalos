@@ -256,20 +256,15 @@ resource "null_resource" "bootstrap" {
       helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
       helm repo update argo 2>/dev/null || true
 
-      # Monta args de values (argocd.local.yaml é obrigatório para SSO)
+      # Values do ArgoCD (Dex/SSO removido, sem local.yaml)
       VALUES_HELM="$CWD/helm-values/argocd.yaml"
-      VALUES_LOCAL="$CWD/helm-values/argocd.local.yaml"
       
-      if [ ! -f "$VALUES_LOCAL" ]; then
-        echo "=========================================================="
-        echo "ERRO: O arquivo $VALUES_LOCAL não existe!"
-        echo "Crie-o a partir de argocd.local.yaml.example com seu secret"
-        echo "real antes de iniciar o deploy."
-        echo "=========================================================="
+      if [ ! -f "$VALUES_HELM" ]; then
+        echo "ERRO: $VALUES_HELM não encontrado"
         exit 1
       fi
       
-      VALUES_ARGS="--values $VALUES_HELM --values $VALUES_LOCAL"
+      VALUES_ARGS="--values $VALUES_HELM"
 
       # Instala ArgoCD via Helm
       echo "Instalando ArgoCD..."

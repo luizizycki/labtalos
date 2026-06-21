@@ -1,12 +1,11 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: argocd-tls
+  name: nextcloud-tls
   namespace: default
 spec:
   secretName: labtalos-tls
   dnsNames:
-    - argocd.izycki.com.br
     - nextcloud.izycki.com.br
   issuerRef:
     name: letsencrypt-prod

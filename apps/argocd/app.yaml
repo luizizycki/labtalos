@@ -4,16 +4,25 @@ metadata:
   name: argocd
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  source:
-    repoURL: https://github.com/luizizycki/labtalos.git
-    targetRevision: main
-    path: apps/argocd/resources
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 9.5.17
+      helm:
+        valueFiles:
+          - $values/helm-values/argocd.yaml
+    - repoURL: https://github.com/luizizycki/labtalos.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

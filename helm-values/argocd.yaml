@@ -1,24 +1,10 @@
-# ArgoCD v3.4.3 — chart: argo-cd 9.5.17
-# Valores para instalação via Helm. Gateway API faz o expose externo.
-
 fullnameOverride: argocd
 
-# --- Configs do ArgoCD ---
 configs:
   params:
     server.insecure: true
-  cm:
-    url: https://argocd.izycki.com.br
-    dex.config: |
-      connectors:
-        - type: github
-          id: github
-          name: GitHub
-          config:
-            clientID: Ov23liBwKMn1JS9baAQZ
-            clientSecret: PLACEHOLDER
   rbac:
-    policy.default: role:admin
+    policy.default: role:read-only
 
 # --- Server ---
 server:
@@ -31,6 +17,10 @@ server:
     limits:
       cpu: 500m
       memory: 512Mi
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+    nodePortHttps: 30443
 
 # --- Repo Server ---
 repoServer:
@@ -56,16 +46,6 @@ controller:
 # --- Redis (single para homelab) ---
 redis:
   enabled: true
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 256Mi
-
-# --- Dex (necessário para SSO, mesmo que não configurado ainda) ---
-dex:
   resources:
     requests:
       cpu: 50m

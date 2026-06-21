@@ -1,0 +1,95 @@
+image:
+  repository: library/nextcloud
+  tag: 33
+  pullPolicy: IfNotPresent
+
+nextcloud:
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-admin
+    usernameKey: username
+    passwordKey: password
+  trustedDomains:
+    - localhost
+    - nextcloud.izycki.com.br
+  objectStore:
+    s3:
+      existingSecret: nextcloud-b2
+      bucket: labtalos
+      host: s3.us-east-005.backblazeb2.com
+      region: us-east-005
+      usePathStyle: true
+      ssl: true
+      port: "443"
+  configs:
+    overwrite.config.php: |-
+      <?php
+      $CONFIG = array (
+        'overwriteprotocol' => 'https',
+        'overwritehost' => 'nextcloud.izycki.com.br',
+        'overwritecondaddr' => '^.*$',
+      );
+
+mariadb:
+  enabled: true
+  architecture: standalone
+  auth:
+    database: nextcloud
+    username: nextcloud
+  primary:
+    persistence:
+      storageClass: nfs-storage
+      size: 10Gi
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 500m
+
+redis:
+  enabled: true
+  architecture: standalone
+  master:
+    persistence:
+      storageClass: nfs-storage
+      size: 1Gi
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+
+httpRoute:
+  enabled: true
+  hostnames:
+    - nextcloud.izycki.com.br
+  parentRefs:
+    - name: labtalos-gateway
+      namespace: default
+
+persistence:
+  enabled: false
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 500m
+  limits:
+    memory: 1Gi
+    cpu: 1
+
+extraManifests:
+- |
+  ---
+  apiVersion: bitnami.com/v1alpha1
+  kind: SealedSecret
+  metadata:
+    name: nextcloud-admin
+    namespace: nextcloud
+  spec:
+    encryptedData:
+      password: AgBC69LfCbVKfUGy0X459BHxzBuZbJWgWmtGGJ1g3HbY7LyUqGlD4i42t3vABJQKwn+mbETfJ+xOjTHUc2l7QAudy3v4mmq4/1pUlWtPcPcpUcSlkSmEE7ztxj9k4nqQfNWjNk5eABKiW4GzCBGYdsR0CsDbj6yQUlUz4bX1hqEQZ6F7+ppqTyHxUbSzaH4YZ1W/1YiXOrEGUssA1gxtKcpOPcmgBsknVJx5yWMleW5D0a3i/nVtggqU/PPUx4Eq3kdrvTJyWZgHmRg6gerEAxDzjBBkQ4K5+OwGCgE6K9bhEfbM75NVRHwfZYVRZtjr82TEGcx+0LtlJ9EmfMx3W/Y//D+WcEVN41dQ1njIHpfdIUJdDejNVsQeqry+kTj0YMgEw+BAvXWam6vIQCjB0k+lAbnOgROHqajCEAjiqkkLRXh8+g/cKtHCIpE/xSnD/b7eJryZZUq9yq85AFeQgY5V1c+JLxrPxvNRvQGiUWUm7dQYDx0n0O//mueNZdr9l7EggTEBgH4pbVdjltJ6iwdp15jNtDIMU9dA90dM2tBBOUr4W3LvaqQsk+vU0JZHy0kIz5W7Rh2TiRkHbJLKh0q7kixkDaXxyEWdgYSUOudB/gJjK43NfmcSOl1igMVoaE/mmqkudCHoKAB9j/LFjKWRfgjPQ0V2QS98Z0P6t93s2o7eQ8raxXcHf+qnSLW6W98WHhj2kgoSg29mSUH1Tg==
+      username: AgBc1oN1e2tEdxcnxdOI4VcI/1hl7wjzcGpo7hUZ4YaLWXpsNJCF/efmV5zP8zxUmnl9x7jeA9WT+yc/ij9sjdZYCQ4I5Blh323hWMlEbvPu5tqcJ9ujZ/ly0xP0Y6ouD23/Y8/1Ym0vYPZdxHSrWKXbT+RLP4D/AGYszPJK/Y87rmSILaP/gGOj1dGzyZwDADjwSng54vyvDpEWMsL3Td4+xWnxdNZ4DF0JW/FlLICTfHrn6SE9LZcNM4CcH93sxpykVHSI7JFR79092EQMpCxxslstSxGYx6fpCv7fwcFe08JKDu1qyRGkiWa/lylqr0Xus8DL9On/KcP9d218c6TkB0RBG2k+J2itHOJPCAjwuD0xapbud1+haZehBMBa0IuYU0NnHQo1ol2pe/TgPl9YEdq+dHRWiAX+VJ3hsQkMnfHsbx0eBS/YJJpaChziTs7MPKnScnYmcSGpMs5X0OhbBa6Gu4q7Y8HnAYxieF4UeAa+f8tmR/ReHvixQhcI2BcX68DwuPkgNKzjgeKb4+p8pnad6zGbzIQmgXih+XGFbZIcriHGWKQEjE+c3SIm1u8mSPrwe17rFzvOBt+PorsGpkQ1pZ5Hk701J3lMNpkeuxAfqGukgHxDNt3cL+AsGz4e9sQ9fbou7qA919UmQpC/940NsZyS6BUOjZIGwsK89z7po4MlZYYGH3QYDs3nvh/BW375JQ==
+    template:
+      metadata:
+        name: nextcloud-admin
+        namespace: nextcloud
+
