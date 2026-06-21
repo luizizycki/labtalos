@@ -1,0 +1,10 @@
+[Unit]
+Description=OCI ARM Instance Retry
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/lizim/Área\ de\ trabalho/labtalos/oci/oci-arm-retry.sh --loop
+User=lizim
+Group=lizim
+StandardOutput=journal
