@@ -1,0 +1,8 @@
+NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)                                          
+talos-cp       445m         22%      1743Mi          40%                                                
+talos-worker   369m         18%      1712Mi          23%                                                
+---                                                                                                     
+NAME                         CPU(cores)   MEMORY(bytes)                                                 
+nextcloud-77cb8865bf-sqwt4   99m          205Mi                                                         
+nextcloud-mariadb-0          21m          199Mi                                                         
+nextcloud-redis-master-0     29m          3Mi                                                           

@@ -76,6 +76,13 @@ data "talos_machine_configuration" "cp" {
         nodeLabels = {
           "node.kubernetes.io/exclude-from-external-load-balancers" = ""
         }
+        sysctls = {
+          "net.core.rmem_max"               = "16777216"
+          "net.core.wmem_max"               = "16777216"
+          "net.ipv4.tcp_rmem"               = "4096 87380 16777216"
+          "net.ipv4.tcp_wmem"               = "4096 65536 16777216"
+          "net.ipv4.tcp_congestion_control" = "bbr"
+        }
       }
       cluster = {
         proxy = {
@@ -134,6 +141,13 @@ data "talos_machine_configuration" "worker" {
             enabled              = true
             forwardKubeDNSToHost = true
           }
+        }
+        sysctls = {
+          "net.core.rmem_max"               = "16777216"
+          "net.core.wmem_max"               = "16777216"
+          "net.ipv4.tcp_rmem"               = "4096 87380 16777216"
+          "net.ipv4.tcp_wmem"               = "4096 65536 16777216"
+          "net.ipv4.tcp_congestion_control" = "bbr"
         }
       }
     })
