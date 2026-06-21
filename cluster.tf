@@ -14,7 +14,7 @@ locals {
     "talos-worker" = {
       vmid    = 801
       cpu     = 2
-      ram     = 5120
+      ram     = 8192
       disk    = 100
       ip      = "192.168.1.51"
       gateway = "192.168.1.1"
