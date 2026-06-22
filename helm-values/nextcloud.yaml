@@ -54,6 +54,7 @@ mariadb:
   auth:
     database: nextcloud
     username: nextcloud
+    password: changeme
   primary:
     persistence:
       storageClass: nfs-storage
@@ -85,6 +86,34 @@ httpRoute:
 
 persistence:
   enabled: false
+
+extraManifests:
+  - apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    metadata:
+      name: nextcloud-admin
+      namespace: nextcloud
+    spec:
+      encryptedData:
+        password: AgBrhVU1ua9EJhlUcawkemzkqDhgRmP4lxSsLOudjUsotK1rlCI8YKOMsK2DHpCh8dakSUxrNYzy6l2nUOAXkMrzaKXVFh2MTZbEA8WnPFQmc1tzKIF72c6iNNb3mQDd4TiHqoX955MA4iBH8IV40x98RJpXOLDrSBVp83dZqN6YE4xLE/yG+qBzRkJ56cJSAYZK7i8F6YhAKRHN0IAtgvELoP3Y0ipf+yEgtz++8ojEjapv+iivngLjYKc/o6lTTQ7DUCuLTgem2y8YnXeVVfsn3z6l6chXvhv403i30x3F3Ej9jC8MC7hofkwbeyhJk3Q1jsDmRe8ZP/Z9tP3guTNRzsSdPIxAbbEvSTAGH59bRmq6PL9hivF00gjnLzOjYJ9JXfDFf2O3CM+6SHUkAMZgiayutijBH/+Tfvi1K0xKR44oFpRHPxNVHlCBscnx2WrSsbjiT/OB6cGnBVXsoa1RHsGA62a9Qj+435Bewqf9/rSyWdoP3Aly/uNf3gylV1CViPMbIcEaq/HXckoH+J5Knyoj2+CaxlT9eRSRuCF2D2WWHy/K8ctMGu7IklXaHT9yEvUO/cOuQLgWEyjKY7zPUwtAeCw8s39U6qW4CR4MF9IiH494opRL4LNZXJB7RTrP1vLc663kpbmaNhaQZmK/+gJgEDIgsHLVegDDCF/8vNgw5zFCm1AVGfDwJeBoiIVpO7WVJysyfOtFehjSNMNGnk471g==
+        username: AgAmjTJreTeaBBt4G5ljtxGuj+BAoTY1mBHvlKqAfr9WcV8ZOgyDyUkIYK6JZEVcaPVsxfa+yT/k6Nbsrf2t5PJV94EAmjjV7K+swnYP+Q/UoM1GoT8LhRXMiRV5Hs8WQHFORD17t4146XqDddJ4Sq9heUklm9tXaW/pr7zAttw81WwXCM71CVonFjbGKBUQfQs67soqLuVaMSPngCheA3Bl8psF8Jr6dKbh/Fe0QaYd6fLhYCuxTK2WkwhwxwVzebFwM8H8EVS8PPq29UvMa8ksp26AScHw3GLwDv5sXBCh43U3ofQurtR1YoduE8fRJ0KVYoiHS9dnazSiN1t6Sw9QrfECm2LD7XG8DcoiZtv++4JJIJDNQovII5XMQmUBYxxL5hc7xeIR4kVP4OTsR53eZDW/Que3yEmQ9vFeLI2qyOiGN1CFFKbtHxcbG5mbSJ1h/IouH6q4tTh+7eKnXR0XUfDN0DbxT2mjHu/Ok8tfc5/Kw6LxPMRKFwZ8FxJO8TBwajpxoDi+f1rtvZ43tPIk/37XjkzTtnsNlrFhRQrrNJ0SkaWxwT+WW56Tj0OFsCeeTbzhW3CQ04FKrWrapKhggzKnsjHt6kAeSSoFHHeM0bTpxSIcX4IQxsMRcNhZSGEse4yz4gagLWAEgYcOKmU8GUI2qIrbbRdurxLrJOT6XyOx/TlS0+AooXifzROeDofONaIYbw==
+      template:
+        metadata:
+          name: nextcloud-admin
+          namespace: nextcloud
+  - apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    metadata:
+      name: nextcloud-b2
+      namespace: nextcloud
+    spec:
+      encryptedData:
+        access-key: AgDHKB9h+3vQB2P2FTLnL1M2rtm2soI0/cENW9NAcNNPLFO0BNlGFHTE3oBeGZn+bGT9dxN0oPlnPwPPXFBzVQHSKQIKy5LSl6WOFtUzS1SWzNl2qNBXJ0wBvPWBjAqOF8CZcMx/YK29KJF6UeW5O6x0gDDlOAM/ZCWpq+Og4Gho3kHkz3sjVxFS9MkYYJRGMCb48JtdnDoMqPovgkyePxYqG8PpE+pZG62vvQ5vB2TMDWfCDiIXK2gqatO5Pbd7ILWOfJ5fqnpCmiD2Wj7z/U9EAfKNY/ClkxLbvULqpl0Sh+Vfc7l1ruEKuRBBiqS6Bp0Wl76/h1p17/OHpdxZ67QCrEXpGNxYR6rY3Ny54F3i8/mBL3NIIZ5BMpDffbyaRG/pjAV0y5TTNLSpqlCR3SMN+ftNV2Y7ne2zT2HTJCNbtHExMKG0IS7a4iHUw6sLR+1PKBzQ8/BdpYQ2l6YxORH6zRSCl3qOE6Ies6O6HMh0ARGEsX/nGH3VvqGD9Md71ZFKJGjy4HixPacQ4/kQQC1iAYgAszPqqdZBsJ2my6AryG/oWkG8jJCmBc3YCFHVftErqWj5NaP/+1Y3I+QvBKv70sIKdTmRgPHLsw0FrbypQBPnbfDOqxtb87Kx/9YFuMcROlCR6uHBIsDMoUnlqGbyYJ82t6xQz1MQ3cLQsQJoH++1CEqFQCs3QyQh3wL9RR4GBeE=
+        secret-key: AgCNcYvNFGmAwr7l5o+EtHMA3Jj6IVqYGEZ4Mll1IXyNzBiqK7nLe9QHy66p2qKkzV4KF62SQszOdsEdx4eSiqA4SHl5ShNqf2sfHINFlTYJ2UXw+EsE3bg4NQ9//kPPqUBO6CZsprxNK8gYZmULDnH5TPyAY7Y2x+aqRzBJzYh/p4wdCn0KvHF2W5iVlDIO8IB4MjeK1Ewz6jJ0+FG5WFGMt1Jz3X0SCMWWFrtG0d7i3Kh5rry9Nt62cMQNrgUc4NBsZ4mYR5FW3kQqIBBBlROPSqLjq0Ybkk8MTUyf9PdOogR3BVLcDZysBE99t/Y+VFmRogOO0eRJRkQHUbSvY4YIGvPC4VbBbxPx2zA6jdIP/zp/Hox0GTBmc0mM/6tLzytCVCFz5t06pwYAKS9FDnLnZQ7RGeq0SlQ5yW0X9mNtsNENv1eub68SX9M+fqNFn5RSCMRzF1bmPBRhjASV8BY+npKHKj+IBiRHRD5su3v+TvEYQj/VJ26RyvAVISJ/H6UBOqM+STlNLPL+xX5YKOlrkmCg9HPRnx+XmLFr1DBFPst0FChPFzgAfO1TOa8lsJMEr3qXL5zWNMAVh0r9EdWOPSGZvlz6WIIWLnU8Ap6nPiNNZqRpMh1GFBw+7VkRs6ZbmXDNM/Y6AGMJ4NPMFUgE0O96cMKeJJfJ5M0CZ3HMS+6h+mtHKeYMFy/n3kDMC5M=
+      template:
+        metadata:
+          name: nextcloud-b2
+          namespace: nextcloud
 
 resources:
   requests:
