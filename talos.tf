@@ -4,24 +4,6 @@ locals {
   cluster_ep  = "https://${local.nodes["talos-cp"].ip}:6443"
   gateway     = local.nodes["talos-cp"].gateway
   cidr_suffix = "/24"
-  sealed_secrets_key_b64   = base64encode(data.external.sealed_secrets_key.result.key)
-  sealed_secrets_crt_b64   = base64encode(file("${path.module}/sealed-secrets-public.crt"))
-  sealed_secrets_manifests = <<EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: sealed-secrets
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: sealed-secrets-key
-  namespace: sealed-secrets
-type: kubernetes.io/tls
-data:
-  tls.key: ${local.sealed_secrets_key_b64}
-  tls.crt: ${local.sealed_secrets_crt_b64}
-EOF
 }
 
 # === 0. IMAGE FACTORY: GERA ISO COM QEMU-GUEST-AGENT ===
@@ -115,10 +97,6 @@ data "talos_machine_configuration" "cp" {
           {
             name     = "cilium"
             contents = file("${path.module}/generated/cilium.yaml")
-          },
-          {
-            name     = "sealed-secrets"
-            contents = local.sealed_secrets_manifests
           }
         ]
         apiServer = {}
@@ -224,16 +202,6 @@ resource "local_file" "talosconfig" {
   content  = data.talos_client_configuration.this.talos_config
 }
 
-# === 8.5. BUSCA KEY DO SEALED-SECRETS NO BITWARDEN ===
-data "external" "sealed_secrets_key" {
-  program = ["bash", "-c", <<-EOT
-    bw get item sealed-secrets-key 2>/dev/null \
-      | jq -r '.notes' \
-      | jq -Rs '{key: .}'
-  EOT
-  ]
-}
-
 # === 9. BOOTSTRAP DO ARGOCD + APPLICATIONS ===
 resource "null_resource" "bootstrap" {
   depends_on = [local_file.kubeconfig]
@@ -325,6 +293,42 @@ resource "null_resource" "bootstrap" {
       # Aguarda ArgoCD server ficar pronto
       echo "Aguardando ArgoCD server..."
       kubectl --kubeconfig "$K" wait --for=condition=Available -n argocd deployment/argocd-server --timeout=180s
+
+      # Cria namespace + Secret da chave do SealedSecrets antes do bootstrap
+      echo "Criando namespace sealed-secrets..."
+      kubectl --kubeconfig "$K" create namespace sealed-secrets --dry-run=client -o yaml | kubectl --kubeconfig "$K" apply -f -
+
+      KEY_FILE=""
+      if [ -n "${BW_SESSION:-}" ] && command -v bw &>/dev/null; then
+        echo "Buscando sealed-secrets-key do Bitwarden..."
+        bw get item sealed-secrets-key --session "$BW_SESSION" 2>/dev/null \
+          | jq -r '.notes' > /tmp/sealed-secrets-key.pem
+        if [ -s /tmp/sealed-secrets-key.pem ]; then
+          KEY_FILE=/tmp/sealed-secrets-key.pem
+        fi
+      fi
+
+      if [ -z "$KEY_FILE" ] && [ -f "$CWD/sealed-secrets-private.pem" ]; then
+        echo "Bitwarden indisponivel, usando chave local..."
+        KEY_FILE=$CWD/sealed-secrets-private.pem
+      fi
+
+      if [ -n "$KEY_FILE" ]; then
+        kubectl --kubeconfig "$K" create secret tls sealed-secrets-key -n sealed-secrets \
+          --key="$KEY_FILE" --cert="$CWD/sealed-secrets-public.crt" \
+          --dry-run=client -o yaml | kubectl --kubeconfig "$K" apply -f -
+        rm -f /tmp/sealed-secrets-key.pem
+      else
+        echo ""
+        echo "ERRO: Chave do SealedSecrets nao encontrada."
+        echo "1. Exporte BW_SESSION e reexecute terraform apply, ou"
+        echo "2. Copie sealed-secrets-private.pem para este diretorio e reexecute, ou"
+        echo "3. Execute manualmente apos o bootstrap:"
+        echo "   kubectl create secret tls sealed-secrets-key -n sealed-secrets \\"
+        echo "     --key=sealed-secrets-private.pem --cert=sealed-secrets-public.crt"
+        echo ""
+        exit 1
+      fi
 
       # Aplica bootstrap Application
       echo "Aplicando bootstrap Application..."
