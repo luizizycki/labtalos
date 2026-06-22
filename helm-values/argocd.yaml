@@ -24,6 +24,8 @@ server:
 
 # --- Repo Server ---
 repoServer:
+  extraArgs:
+    - --sops-enabled
   env:
     - name: SOPS_AGE_KEY_FILE
       value: /home/argocd/sops/age.key
