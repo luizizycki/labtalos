@@ -202,6 +202,16 @@ resource "local_file" "talosconfig" {
   content  = data.talos_client_configuration.this.talos_config
 }
 
+# === 8.5. BUSCA KEY DO SOPS NO BITWARDEN ===
+data "external" "sops_age_key" {
+  program = ["bash", "-c", <<-EOT
+    bw get item sops-age-key 2>/dev/null \
+      | jq -r '.notes' \
+      | jq -Rs '{key: .}'
+  EOT
+  ]
+}
+
 # === 9. BOOTSTRAP DO ARGOCD + APPLICATIONS ===
 resource "null_resource" "bootstrap" {
   depends_on = [local_file.kubeconfig]
@@ -217,6 +227,7 @@ resource "null_resource" "bootstrap" {
     environment = {
       KUBECONFIG = "${path.module}/kubeconfig"
       CWD        = path.module
+      SOPS_KEY   = data.external.sops_age_key.result.key
     }
     command = <<-EOT
       set -eux
@@ -279,6 +290,13 @@ resource "null_resource" "bootstrap" {
       fi
       
       VALUES_ARGS="--values $VALUES_HELM"
+
+      # Cria namespace argocd e Secret com a key do SOPS
+      echo "Criando Secret sops-age-key..."
+      kubectl --kubeconfig "$K" create namespace argocd --dry-run=client -o yaml | kubectl --kubeconfig "$K" apply -f -
+      echo "$SOPS_KEY" | kubectl --kubeconfig "$K" create secret generic sops-age-key \
+        --namespace argocd --from-file=age.key=/dev/stdin --dry-run=client -o yaml \
+        | kubectl --kubeconfig "$K" apply -f -
 
       # Instala ArgoCD via Helm
       echo "Instalando ArgoCD..."
