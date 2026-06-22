@@ -14,6 +14,7 @@ nextcloud:
     - nextcloud.izycki.com.br
   objectStore:
     s3:
+      enabled: true
       existingSecret: nextcloud-b2
       bucket: labtalos
       host: s3.us-east-005.backblazeb2.com
