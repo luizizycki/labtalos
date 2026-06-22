@@ -24,11 +24,6 @@ server:
 
 # --- Repo Server ---
 repoServer:
-  extraArgs:
-    - --sops-enabled
-  env:
-    - name: SOPS_AGE_KEY_FILE
-      value: /home/argocd/sops/age.key
   resources:
     requests:
       cpu: 100m
@@ -37,14 +32,6 @@ repoServer:
       cpu: 500m
       memory: 512Mi
   timeout: 120
-  volumes:
-    - name: age-key
-      secret:
-        secretName: sops-age-key
-  volumeMounts:
-    - name: age-key
-      mountPath: /home/argocd/sops
-      readOnly: true
 
 # --- Application Controller ---
 controller:
