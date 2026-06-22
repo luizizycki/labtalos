@@ -30,6 +30,21 @@ nextcloud:
         'overwritecondaddr' => '^.*$',
       );
 
+internalDatabase:
+  enabled: false
+
+externalDatabase:
+  enabled: true
+  type: mysql
+  host: nextcloud-mariadb
+  database: nextcloud
+  user: nextcloud
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-db
+    usernameKey: db-username
+    passwordKey: db-password
+
 mariadb:
   enabled: true
   architecture: standalone
@@ -65,6 +80,30 @@ httpRoute:
     - name: labtalos-gateway
       namespace: default
 
+extraEnvVars:
+  - name: OBJECTSTORE_S3_BUCKET
+    value: labtalos
+  - name: OBJECTSTORE_S3_REGION
+    value: us-east-005
+  - name: OBJECTSTORE_S3_HOST
+    value: s3.us-east-005.backblazeb2.com
+  - name: OBJECTSTORE_S3_PORT
+    value: "443"
+  - name: OBJECTSTORE_S3_SSL
+    value: "true"
+  - name: OBJECTSTORE_S3_USEPATH_STYLE
+    value: "true"
+  - name: OBJECTSTORE_S3_KEY
+    valueFrom:
+      secretKeyRef:
+        name: nextcloud-b2
+        key: access-key
+  - name: OBJECTSTORE_S3_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: nextcloud-b2
+        key: secret-key
+
 persistence:
   enabled: false
 
@@ -82,14 +121,32 @@ extraManifests:
   apiVersion: bitnami.com/v1alpha1
   kind: SealedSecret
   metadata:
+    creationTimestamp: null
     name: nextcloud-admin
     namespace: nextcloud
   spec:
     encryptedData:
-      password: AgBy+UUsJIZz+uQ8js6MKZy3Ynb3gFjA3/wf2VhZrHtBW6C0kHOSKAp2qA9Ag1oYk7Cy99EkaPUKs68RtnCV+R8a7sENLZ7/CAV2ix1RbyGt7BB48Ve5Usae29VWNeAIPA4J4S2dRdwZzRCuNc3yLmhqrenbqiVeayyV1sO9UkMeNt35r8WNLSXWc54xAsjxWIii+2kNUOObZu5mosJqRuQhajD7IlEdp7LmRVUmYwcUSP0bI0VqNlwL1MQyjBwKBNl/9Tw0DWBptudGhiRFLEvrYpfB9Spwiu4E7JiEnItNuN6kBKfy8FkSDIKS0jZV6B8m18FWdqsBKPt0Mw2olz4bsiUUOmVSCA8NMoy1nfVaVbG0Z5AZg3jn2QJu46heaUTFXqshPtkvLfeZMRrMWaa+0xawI/NetSryXa4VCZLjsJeeUEmcRJsFP8xkBpg1mQy3tNM+OuZBdRGXvMhsW8HJI/2oKhr7MNd9pSpVafhqdvDtF2uIKOKtADnowSuX1Z+BSqheGUWmr1QtPBqA8nX5qh1L9xrYNzZFzEH738rE/WFArwy75OQGT7TSfsJiUgWLGIsgc0dZkwRHAwsNgXJUCKVJRFSOe8l6Mrfdx/yslQf+efPOyceu2wFB2kPnfAs+pz7LDiWuAwSUGYT/QrbSEIdjdcP90b1g7ckraK4pxPDIzAuIakxlAijyVWVUsYjtq+b5MOkqnqquP3AYOA==
-      username: AgAnfUKG11Ks75aUbyNuEMdBv3qIZ4wk+suNwgLeZBeJpCIAo4N2JgCpENlsyUAflce/LOleMhSzdFsRgCIDl6sdL1XnWnmzMOfTQTd3v4wOvms0yYs0C8wvIgh2mgiR2qzTpOo9C/yLI2j5UkAtZdg2fzAy+RdJAL9mF3FWrX30ld29Q5/onAI7mbWE8lj1LNRv1pQ9L4oqyVy1KlDTR57vD9h2eYRIqOrQFHsFxtSzaYusgL0PWaT5CVSqVlo4VF9X6+zRGqJgZT4SpS0gd9c4JcZY/Pv1jwu/TOdWFFR12iLPu9LU9DRFR3ZKQ2knxUyQHGyZXlOQmK4S/Oo8I1HRcR7RR68M69BgCjJ7iaqDPMxQ7HJn21pKGK53n9hIdSDVda8XvBnHAoEQUVSEV2IO9pQUjMG7FOeL8b9p+SRFEAMfvfEWjFKzlnnsEPZycKalOvY1KZ7YBsTg8CkptMUnV7CIQegx7PTtnWQxOpC4zSW0UC44u8zHCcC3GYsoLJhwtdmBirVCUdZTxsyeRhq5KBwOJmYQy+kyjiHJqvJmOiBVRubpK9oI5d4Khu7HSkJ1A7h0GX+fMhx7MPvXYLtinqRM+LuTQDehFMLOwtbz4JwfTl58jf+9qPvkvP+lVSfilGKg0MDKZIi9/BydPj/3G4h5wPsT2o1vC7lS2euKVxhAgRKP/jumli2lE4MFmwIp+A==
+      password: AgC5yFqmecHcMeYINrL/v69NsuLE1R32NEonjj3+VfzQTrl5KfdHx/USYp9si/CrTuWeHU0EmYgSmcPrZtrWdpkU3+J12+3AYHKwRa4ShOBG1eeNgTTyOgikPF3t6wsQOg7+KIq1j9lfMzQ9kToWBau7cKo3wDfdMt4MS4rrwmLLClvnM+lbukh7dcGZdpJrkAYFY2q10gkLE14Lcs1MjSFnOu7e0Mv5z5qUYfiCc1IbCE8tflqFHgk5h64WRaU77+E374TnZnpqOiKeSwgoppmHKFoiDwzCWNK4Ta7kQC5hlAUwUfE61TFeAkN/XxUT5Qs+La4cbOXIUD3K6yA97Zpd3mckHo+mfp/bRdxBZ1YAImAEXGYk7G0YSpbGp4yVuI+i1rrvGE9mRhEK+EhdTHZcJCPunlQHe7Lc3mFV/e1we43MpHhPbfncRlzQ1cfhB7w2bEtAxvZNTQEPy0nMFqp/Dnb5aLBHkbr8zarY2eUNIVoodF++X1iA7AdrRy/IT/opJ1KIrH7fqdN12JBuWdcPcmJeGJuhEQqrgYyeR0ZODFz/XjAhEbURnJXAN6PqScxNEGsv4PEA1LWkLOEJ+Tp/sMr5ksa3zCJkCjHxmDjlUpVAB51DgqmTjeJTaPYAOsPK8bdfSlamWYRYYgmjijblqFnMcIS4qFBRSN+cZFQyqnB3loam6miFXRiNVi5ambSdGwOkR8rucsNhPHOoTQ==
+      username: AgAcuDJY/7XodBfV9hgaxbkLByPbTgqDExwAlSLFpB4bmTlO0lNO5cR2sqguaiA+AMo87Qu0nOtBqPU2K1mjIbqdLa6hSZ5cLQKh0PCyK2WOZ0an0eJaHFxcVBPIIbQd1uy/zxFsNwFFvEJv4DGigkdlg+NPTT3dbShkqjOkRKx4ibItdyNEZ34Umi2rH3HWrIEH5ejcCnRrQgnizE2b2oCSRbLyA72CWvkIF9liNQMbG5/178THM+Rjvwy8t4JYJBfeeiNRZ/TDx3Jn4lJdRdLBV3dyoqgbwfhUaMGjytnWAoPjIM6F7TG9/RsHR4+ZzX6oeu3w0/ACloJy/j2cVTLFUGUE54VBVjXQuOAIT/BLuRIAgfjyMP7PrVaspLEepSV3+gqjUbFjBIsorVFOb5SYWK8MwxE6Pd14IHO3tGSPpEshTeIWF7ZiOOgu6qmI4GLNzvMJ5Lnim2VsM28x91tl+n/JtHjJTl6opbR6AkNfLKT68Sjuo5cgcgfl95SuM2VTPDlZ3E5YTsOiGlq1zDOJHXl6dDjwYdn5SZVWGn31Op+N3Gs07hYRyFEpQndTYqC5LnVBxs9W9qCik+rn+6egcdYAQWz2U9sFMo9josRdq3yVlzvuJZz52OKD4ODgdK0F4jJVwTAzwFq1MODMPwrk/Qt6PRH9QT3wOk4mqOmP8iW7kFym+x+7a+8D+QpMAp4/AC+eDw==
     template:
       metadata:
+        creationTimestamp: null
         name: nextcloud-admin
         namespace: nextcloud
-
+- |
+  ---
+  apiVersion: bitnami.com/v1alpha1
+  kind: SealedSecret
+  metadata:
+    creationTimestamp: null
+    name: nextcloud-b2
+    namespace: nextcloud
+  spec:
+    encryptedData:
+      access-key: AgCV7lvD6HhThj1Z3chwCybe45W00sZiKr0nwOxXrc/fVB2s8v0sfdvvKHgIIEBRnR4eap1O3gF3/g8i7FNIWSJiE+if1P65QwxjBG6HZ3pTxWrvxRKwObV+fT4UdsPp7BEeRPu9sGOBTkEqJ1YX7FFQrP5wIiA+134ekLaOxv+hbgKA1qNXfHG+dsUk8+cavItPJoD6uK57yBEEbyaLIKFx0a5ffxbIl6j/E8m5dhF8NZOGkBhdlDBiFBKpTl+0MXqLNuN7JPQTpduu1/ae7CXH0uTyKbjJJ9IAoHIkTDV+2UAfdKhrnkpnVPwJSQRqtSmStvy9CAq/k6m/0+tOgoi+8kMoYme3WaYw7MIHtx5q/2w9MRpiyH8SJ9N1h5dHYktIs4SoPh9yZiRHOYs0joKKD0s2lYYHGCE2yow1f2vJE2JaBC6F/ehvFweVkTJcrrLKEkkQh8O/ULAqV6azgFheWZDjHdWDRP0snDFgs5RYas5txgHFBZpzw6CUasF1LqPHqrQwVKkzV5Wn90yUKhh+mTxZRHsYqBeBpy5GjpPyAofu6Dyvj8opS1pv15wX7cEdALr5IxntzwL1I8/EvLBbpi4hG+u8uhV0la5FgHNUnaIXIf9DCLWp/LpOY5gUo/LkRa5HG3nzRdhVBQIJXUE9Fu30GKwTnNK1ZR9G9fsc/MktoBuYwBix30/7nL5DoQr+isZLIktPkoQlbHkTH5g/r2hOjXMx1v8H
+      secret-key: AgCsIg6CeaIItTjDFK7iAllUxeY5DrkKHLILa7zzzBllzitFJqdDl6fNxyzUJ5Y5pF4GwNndhhuO7buAx0A9mKI4qwTNViLbL19/jL6X24VtA98v6GNqSxk7wDMnjpPejRrSS+7+KCDyFxGPPE0k3gWtxxk5A7B5Fhd45gloutQEUVK8Fb899kj6RwyOCGi5KQVXFfKa3bmSEWRW5Y80W+59vsu+yy8i2sOaGkrwlFeGdHYW8YvX+N/Wq4jKVGokQ+bRhuiR5FvaqaIPmKz1FtoFkVCU6CbX37w5BvKuuPGmMLT9U/fe7f9qS5D1nFnsv4bThcv/UP4JRtZY0Y7yJ5k4mb7CIsBCrYlHdw8GLqgFjsfhVPy9gqHYNG3fVdzxr3rcFvTeInf/6BJskyxurbzrUO0dQCcRqxQQVd9WWDwWOyX+2j39m3ukNY4y7gj9XnEYTfNnzaXG0ccPlE17bkG+My4YrkqX1CicydHvcqHY0upSUkbwU8OAmtrOZso4S8zeQ9TILGseG2oyuWPGDnYm9x2nsUvC7Nxd5jELKSBsXgzbEL9x8Vj6Z198zub6EiPq/LFMLc/vTPInE39lDAO7iZ6IhJ+i/Z7Tit9wmhLrr3y5xJKOt052eP7HaDGNuy5sHGi2qisMc6QRW3eJ1c5nM4I22gvmWAS/Z5egAn92X/pVEsetThmM3hINfZ+2xyjdVKuPRkiMUQwaQ0SwPj1O1boeBUikl8XaF+iBDisE
+    template:
+      metadata:
+        creationTimestamp: null
+        name: nextcloud-b2
+        namespace: nextcloud
