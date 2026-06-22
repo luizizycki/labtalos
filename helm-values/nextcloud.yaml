@@ -62,9 +62,9 @@ externalDatabase:
   host: nextcloud-mariadb
   database: nextcloud
   user: nextcloud
+  password: changeme
   existingSecret:
-    enabled: true
-    secretName: nextcloud-db
+    enabled: false
     usernameKey: db-username
     passwordKey: db-password
 
