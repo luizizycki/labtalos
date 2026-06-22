@@ -16,6 +16,9 @@ nextcloud:
     s3:
       enabled: true
       existingSecret: nextcloud-b2
+      secretKeys:
+        accessKey: access-key
+        secretKey: secret-key
       bucket: labtalos
       host: s3.us-east-005.backblazeb2.com
       region: us-east-005
