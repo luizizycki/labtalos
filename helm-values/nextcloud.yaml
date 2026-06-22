@@ -29,30 +29,6 @@ nextcloud:
         'overwritehost' => 'nextcloud.izycki.com.br',
         'overwritecondaddr' => '^.*$',
       );
-  extraEnv:
-    - name: OBJECTSTORE_S3_BUCKET
-      value: labtalos
-    - name: OBJECTSTORE_S3_REGION
-      value: us-east-005
-    - name: OBJECTSTORE_S3_HOST
-      value: s3.us-east-005.backblazeb2.com
-    - name: OBJECTSTORE_S3_PORT
-      value: "443"
-    - name: OBJECTSTORE_S3_SSL
-      value: "true"
-    - name: OBJECTSTORE_S3_USEPATH_STYLE
-      value: "true"
-    - name: OBJECTSTORE_S3_KEY
-      valueFrom:
-        secretKeyRef:
-          name: nextcloud-b2
-          key: access-key
-    - name: OBJECTSTORE_S3_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: nextcloud-b2
-          key: secret-key
-
 internalDatabase:
   enabled: false
 
