@@ -54,7 +54,6 @@ mariadb:
   auth:
     database: nextcloud
     username: nextcloud
-    password: changeme
   primary:
     persistence:
       storageClass: nfs-storage
